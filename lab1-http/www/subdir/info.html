@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>PR Lab 1 — Info</title>
+    <style>
+      :root{
+        --bg:#0b1020; --panel:#141a2b; --text:#e7ecf3; --muted:#9fb0c3; --accent:#5aa9ff;
+      }
+      *{box-sizing:border-box}
+      body{
+        margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+        color:var(--text);
+        background: radial-gradient(1200px 600px at 20% -10%, #1b2340 0%, #0b1020 60%);
+      }
+      .wrap{max-width:860px;margin:0 auto;padding:2rem}
+      a{color:var(--accent);text-decoration:none;font-weight:600}
+      .panel{
+        background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:16px;padding:1.25rem;backdrop-filter:blur(8px);
+        box-shadow:0 10px 30px rgba(0,0,0,.35);
+      }
+      h1{font-size:1.25rem;margin:0 0 .75rem}
+      p.muted{color:var(--muted)}
+      ul{margin:.5rem 0 0 1.2rem}
+      code{background:rgba(255,255,255,.08);padding:.15rem .35rem;border-radius:6px}
+      .row{display:grid;grid-template-columns:1fr;gap:1rem}
+      @media (min-width:720px){ .row{grid-template-columns:1.1fr .9fr} }
+      .card{padding:1rem;border-radius:14px}
+      .card:hover{background:rgba(255,255,255,.03)}
+      footer{margin-top:1.25rem;color:var(--muted);font-size:.9rem}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="panel">
+        <h1>Info Page (subdir)</h1>
+        <p class="muted">This page lives at <code>/subdir/info.html</code>. Use it to test nested paths and relative links.</p>
+
+        <div class="row">
+          <div class="card">
+            <h2>Navigation</h2>
+            <ul>
+              <li><a href="/">Home (index)</a></li>
+              <li><a href="/subdir/">Back to subdir/ listing</a></li>
+              <li><a href="/books/">Books directory</a></li>
+              <li><a href="/images/sample.png">Sample PNG</a></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h2>What to try</h2>
+            <ul>
+              <li>Open a PDF, then copy its URL and use your <code>client.py</code>:
+                <br><code>python client.py http://127.0.0.1:8080/books/book1.pdf ./downloads</code>
+              </li>
+              <li>Request an unknown extension to see <code>404 Not Found</code>.</li>
+              <li>Click “Back to subdir/ listing” to test directory HTML index.</li>
+            </ul>
+          </div>
+        </div>
+
+        <footer>PR Lab 1 — HTML • PNG • PDF • Nested directories</footer>
+      </section>
+    </div>
+  </body>
+</html>

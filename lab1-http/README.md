@@ -8,9 +8,9 @@
 
 ---
 
-## 1. Goal
+## 1. The Task
 
-Implement a minimal HTTP server using **raw TCP sockets** that:
+Implement an HTTP File server using **raw TCP sockets** that:
 - Handles one HTTP request at a time.
 - Serves files from a chosen directory (`.html`, `.png`, `.pdf`).
 - Returns a **404 custom page** for missing or unsupported files.
@@ -23,7 +23,7 @@ Implement a minimal HTTP server using **raw TCP sockets** that:
 ## 2. Project Structure
 
 ```
-pr-/
+lab1-http/
 ├── server.py           # HTTP server
 ├── client.py           # HTTP client
 ├── Dockerfile          # Container definition
@@ -68,10 +68,15 @@ Shows the main index.html page being served in the browser
 ![image](screenshots/books.png)
 Lists the contents of the books subdirectory containing PDF files
 
-### Screenshot – opening a file
+### Screenshot – opening a .pdf file
 
 ![image](screenshots/open-file.png)
 Demonstrates opening and viewing a file from the server
+
+### Screenshot – opening a .png file
+
+![image](screenshots/open-photo.png)
+Shows opening and viewing a photo from the server
 
 ### Screenshot – 404 page
 
@@ -81,12 +86,46 @@ Shows the custom 404 error page when requesting a non-existent file
 
 ---
 
-## 4. Running with Docker
+## 4. Docker Setup
+
+### Dockerfile
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY server.py client.py /app/
+COPY www /app/www
+EXPOSE 8080
+ENV PORT=8080
+CMD ["python", "server.py", "/app/www"]
+```
+
+### docker-compose.yaml
+```docker
+services:
+  web:
+    build: .
+    command: ["python", "server.py", "/app/www"]
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      - ./www:/app/www:ro
+    restart: unless-stopped
+```
 
 ### Build and run with Docker Compose
 ```bash
 docker compose up --build
 ```
+Compose uses the command: `["python","server.py","/app/www"]`, so the server runs with `/app/www` as the served directory.
+
+### Plain Docker - Alternative Approach
+```bash
+docker build -t pr-lab1 .
+docker run --rm -p 8080:8080 -v "$(pwd)/www:/app/www:ro" pr-lab1 python server.py /app/www
+```
+Here you explicitly pass `/app/www` as the argument that points to the mounted folder.
 
 ### Screenshot – container start
 
@@ -119,7 +158,38 @@ python client.py http://127.0.0.1:8080/index.html ./downloads
 
 ---
 
-## 6. Key Components
+## 6. Browsing friend's server
+**Friend**: Victoria Mutruc, FAF-232
+
+### Network setup
+1. Both machines on the same LAN. 
+2. Friend ran the same server on his machine (port 8080). 
+3. We ensured local firewalls allowed inbound connections on 8080.
+
+### Further process
+- Found his IP by running `ipconfig getifaddr en0` in macOS terminal.
+- Accessed the server by opening: `http://<friends-ip-address>>:8080/`
+- Playing around and viewing the website.
+
+### Screenshot - Network Request (Browser)
+![image](screenshots/friend-request-summary.png)
+This shows the network request at friend's server
+
+### Screenshot - Content of the server
+![image](screenshots/friend-content.png)
+The content of the friend's server displayed in the browser
+
+### Screenshot - Save picture using client script
+![image](screenshots/friend-client-save.png)
+The terminal output of saving the photo
+
+### Screenshot - Client request configuration
+![image](screenshots/friend-request-configuration.png)
+The configuration of running client script to friend's server
+
+---
+
+## 7. Key Components
 
 | Component | Purpose |
 |------------|----------|

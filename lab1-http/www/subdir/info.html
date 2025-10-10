@@ -24,7 +24,7 @@
       }
       h1{font-size:1.25rem;margin:0 0 .75rem}
       p.muted{color:var(--muted)}
-      ul{margin:.5rem 0 0 1.2rem}
+      li{margin: .5rem; font-size: 1rem}
       code{background:rgba(255,255,255,.08);padding:.15rem .35rem;border-radius:6px}
       .row{display:grid;grid-template-columns:1fr;gap:1rem}
       @media (min-width:720px){ .row{grid-template-columns:1.1fr .9fr} }
@@ -53,11 +53,11 @@
           <div class="card">
             <h2>What to try</h2>
             <ul>
+              <li>Request an unknown extension to see <code>404 Not Found</code>.</li>
+              <li>Click “Back to subdir/ listing” to test directory HTML index.</li>
               <li>Open a PDF, then copy its URL and use your <code>client.py</code>:
                 <br><code>python client.py http://127.0.0.1:8080/books/book1.pdf ./downloads</code>
               </li>
-              <li>Request an unknown extension to see <code>404 Not Found</code>.</li>
-              <li>Click “Back to subdir/ listing” to test directory HTML index.</li>
             </ul>
           </div>
         </div>

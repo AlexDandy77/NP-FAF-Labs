@@ -6,7 +6,9 @@ import mimetypes
 import urllib.parse
 from datetime import datetime
 from html import escape
+import time
 
+DELAY_MS = int(os.environ.get("DELAY_MS", "0"))
 HOST = os.environ.get("HOST", "0.0.0.0")
 PORT = int(os.environ.get("PORT", "8080"))
 
@@ -223,6 +225,9 @@ def handle_request(conn, base_dir: str):
                               b"Forbidden")
         conn.sendall(resp)
         return
+
+    if DELAY_MS > 0:
+        time.sleep(DELAY_MS / 1000.0)
 
     if os.path.isdir(abs_path):
         body = list_directory(abs_path, path if path.endswith("/") else path + "/")

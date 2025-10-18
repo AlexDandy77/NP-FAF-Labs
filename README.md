@@ -7,4 +7,4 @@ This is the original repository for storing the Laboratory works for the Network
 
 ## Table of Contents
 
-- [Laboratory 1](lab1-http/REPORT.md)
+- [Laboratory 1](https://github.com/AlexDandy77/NP-FAF-Labs/tree/main/lab1-http/README.md)

@@ -23,7 +23,7 @@ Implement an HTTP File server using **raw TCP sockets** that:
 ## 2. Project Structure
 
 ```
-lab1-http/
+lab1_http/
 ├── server.py           # HTTP server
 ├── client.py           # HTTP client
 ├── Dockerfile          # Container definition

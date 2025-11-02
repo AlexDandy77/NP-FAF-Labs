@@ -97,11 +97,7 @@ class ServerProc:
         self.p = None
 
 
-# -------------- HTML parsing helper for listing --------------
-
 def parse_listing_hits(html: str, entry_name: str) -> int:
-    # Very simple parsing: find anchor for entry_name and read the number in the following <td class='num'>X</td>
-    # We look for href="{entry_name}" or href="{entry_name}/" as produced by server_mt.py
     variants = [f'"{entry_name}"', f'"{entry_name}/"']
     idx = -1
     for v in variants:

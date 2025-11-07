@@ -24,6 +24,7 @@ export class Board {
     private readonly playerStates: Map<string, PlayerState> = new Map();
     private readonly listeners: ((b: string) => void)[] = [];
     private static readonly waitMs = Number('100');
+    private static readonly noneCard = { row: -19527, col: -19527 };
 
     // Abstraction function:
     //   AF(height, width, board) = a memory game board where:
@@ -64,7 +65,7 @@ export class Board {
     }
 
     /**
-     * Check that the rep invariant is satisfied
+     * Check that the rep invariant is satisfied right before creating a board instance.
      */
     private checkRep(): void {
         assert(this.height > 0, 'height must be positive');
@@ -77,6 +78,38 @@ export class Board {
                 assert(cell.card.length > 0, 'card values must be non-empty');
                 if (cell.controller !== undefined) {
                     assert(cell.faceUp, 'cards with controller must be face up');
+                }
+            }
+        }
+    }
+
+    /**
+     * A lighter-weight representation check used at the end of public API methods.
+     * This verifies key properties quickly without the full, heavier assertions in
+     * `checkRep()`.
+     */
+    private checkRepFunctions(): void {
+        // Basic structural invariants
+        assert(this.height > 0, 'height must be positive');
+        assert(this.width > 0, 'width must be positive');
+        assert(this.board.length === this.height, 'board height must match height field');
+
+        for (let r = 0; r < this.board.length; r++) {
+            const row = this.board[r];
+            assert(row !== undefined, 'row must exist');
+            assert(row.length === this.width, 'all rows must have width length');
+            for (let c = 0; c < row.length; c++) {
+                const cell = row[c];
+                assert(cell !== undefined, 'cell must exist');
+                assert(typeof cell.card === 'string', 'card must be a string');
+                // if card is removed (empty), it should be face down and uncontrolled
+                if (cell.card.length === 0) {
+                    assert(cell.faceUp === false, 'removed card must be face down');
+                    assert(cell.controller === undefined, 'removed card must have no controller');
+                }
+                // if there is a controller, card must be face up
+                if (cell.controller !== undefined) {
+                    assert(cell.faceUp === true, 'cards with controller must be face up');
                 }
             }
         }
@@ -202,6 +235,11 @@ export class Board {
                     first.faceUp = false;
                 }
             }
+            if (state.secondCard === Board.noneCard) {
+                this.playerStates.set(playerId, { hasMatch: false });
+                this.notifyAll();
+                return;
+            }
             if (state.secondCard !== undefined) {
                 const second = this.board[state.secondCard.row]?.[state.secondCard.col];
                 if (second !== undefined && (second.faceUp ?? false) && second.controller === undefined) {
@@ -209,7 +247,7 @@ export class Board {
                 }
             }
             this.playerStates.set(playerId, { hasMatch: false });
-        }
+        } 
         return;
     }
 
@@ -239,7 +277,9 @@ export class Board {
             lines.push(`${status} ${text}`.trim());
         }
         }
-        return lines.join("\n");
+        const out = lines.join("\n");
+        this.checkRepFunctions();
+        return out;
     }
 
     /**
@@ -271,6 +311,11 @@ export class Board {
             throw new Error('invalid card position');
         }
         
+        // Always attempt to clean up any previous move for this player before proceeding.
+        this.cleanupPreviousMove(playerId);
+        state = this.playerStates.get(playerId) ?? { hasMatch: false };
+        this.playerStates.set(playerId, state);
+
         const cell = this.board[row]?.[column];
 
         if (cell === undefined || cell.card.length === 0) {
@@ -280,17 +325,15 @@ export class Board {
                 const firstCard = this.board[state.firstCard.row]?.[state.firstCard.col];
                 if (firstCard) {
                     firstCard.controller = undefined;
+                    state.secondCard = Board.noneCard;
+                    // Wake any waiters after releasing control so they can proceed
+                    this.notifyAll();
                 }
+
             }
             throw new Error('invalid card position');
         }
-
-        // Clean up previous move if starting a new first card
-        this.playerStates.set(playerId, state);
-        // Always attempt to clean up any previous move for this player before proceeding.
-        this.cleanupPreviousMove(playerId);
-        state = this.playerStates.get(playerId) ?? { hasMatch: false };
-        this.playerStates.set(playerId, state);
+        
 
         // Handle first card flip
         if (!state.firstCard) {
@@ -310,7 +353,11 @@ export class Board {
             state.firstCard = { row, col: column };
             this.playerStates.set(playerId, state);
             this.notifyAll();
-            return this.look(playerId);
+            {
+                const out = this.look(playerId);
+                this.checkRepFunctions();
+                return out;
+            }
         }
 
         // Handle second card flip
@@ -319,6 +366,8 @@ export class Board {
             const firstCard = this.board[state.firstCard.row]?.[state.firstCard.col];
             if (firstCard) {
                 firstCard.controller = undefined;
+                // Wake waiters that may be waiting on the first card
+                this.notifyAll();
             }
             state.firstCard = undefined;
             throw new Error('card is controlled by another player');
@@ -357,7 +406,11 @@ export class Board {
         // Save the updated state
         this.playerStates.set(playerId, state);
         this.notifyAll();
-        return this.look(playerId);
+        {
+            const out = this.look(playerId);
+            this.checkRepFunctions();
+            return out;
+        }
     }
 
 
@@ -398,7 +451,11 @@ export class Board {
         }
         
         this.notifyAll();
-        return this.look(playerId);
+        {
+            const out = this.look(playerId);
+            this.checkRepFunctions();
+            return out;
+        }
     }
 
     /**
@@ -411,8 +468,10 @@ export class Board {
      *          format described in the ps4 handout
      */
     public async watch(playerId: string): Promise<string> {
-        return new Promise(resolve => {
+        const p = new Promise<string>(resolve => {
             this.listeners.push(() => resolve(this.look(playerId)));
         });
+        this.checkRepFunctions();
+        return p;
     }
 }

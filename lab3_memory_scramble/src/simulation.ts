@@ -32,8 +32,8 @@ async function simulationMain(): Promise<void> {
         console.warn('Could not determine board dimensions, using defaults:', err);
     }
     
-    const players = 2;
-    const tries = 20;
+    const players = 4;
+    const tries = 100;
     const maxDelayMilliseconds = 100;
 
     // start up one or more players as concurrent asynchronous function calls

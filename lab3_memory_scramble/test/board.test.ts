@@ -153,36 +153,12 @@ describe('Board', function() {
             const board = await Board.parseFromFile('boards/perfect.txt');
             
             await board.flip('player1', 0, 0);
+            await board.flip('player1', 0, 1);
+            await board.flip('player1', 0, 2);
             const view = board.look('player1');
             const lines = view.split('\n');
-            const firstLine = lines[1];
-            assert(firstLine, 'Expected first card line');
-            const parts = firstLine.split(' ');
-            const firstCard = parts[1];
-            assert(firstCard, 'Expected first card value');
-            
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 4; j++) {
-                    if (i === 0 && j === 0) continue;  // Skip first card
-                    try {
-                        const result = await board.flip('player1', i, j);
-                        if (result.includes(firstCard)) {
-                            // Found the match, look at the board again
-                            await board.flip('player1', 0, 0);  // New first card to trigger cleanup
-                            const finalView = board.look('player1');
-                            const finalLines = finalView.split('\n');
-                            const emptySpaces = finalLines.filter(line => line === 'none');
-                            assert.strictEqual(emptySpaces.length, 2, 
-                                'Should see two empty spaces where cards were removed');
-                            return;
-                        }
-                    } catch (e) {
-                        // Skip invalid positions
-                        continue;
-                    }
-                }
-            }
-            assert.fail('Should have found and removed a matching pair');
+            assert(lines[1] === 'none', 'Position (0,0) should be empty');
+            assert(lines[2] === 'none', 'Position (0,1) should be empty');
         });
     });
 

@@ -197,7 +197,7 @@ class WebServer {
     /**
      * Stop this server. Once stopped, this server cannot be restarted.
      */
-     public stop(): void {
+    public stop(): void {
         this.server?.close();
         console.log('server stopped');
     }

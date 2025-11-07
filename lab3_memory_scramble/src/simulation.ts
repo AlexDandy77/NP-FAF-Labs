@@ -1,12 +1,9 @@
-import assert from 'node:assert';
 import { Board } from './board.js';
 import { look, flip } from './commands.js';
 
 /**
- * Example code for simulating a game.
- * 
- * PS4 instructions: you may use, modify, or remove this file,
- *   completing it is recommended but not required.
+ * Simulation script for a game of Memory Scramble.
+ * Simulates multiple players making random moves with random timeouts.
  * 
  * @throws Error if an error occurs reading or parsing the board
  */

@@ -53,4 +53,3 @@ export async function map(board: Board, playerId: string, f: (card: string) => P
 export async function watch(board: Board, playerId: string): Promise<string> {
   return board.watch(playerId);
 }
-

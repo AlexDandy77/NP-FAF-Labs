@@ -58,7 +58,7 @@ export class Board {
         this.height = height;
         this.width = width;
         this.board = cards.map(row =>
-        row.map(card => ({ card, faceUp: false, controller: undefined }))
+            row.map(card => ({ card, faceUp: false, controller: undefined }))
         );
         this.checkRep();
     }
@@ -177,7 +177,7 @@ export class Board {
         const state = this.playerStates.get(playerId);
         if (!state) return;
 
-    if (state.hasMatch && state.firstCard !== undefined && state.secondCard !== undefined) {
+        if (state.hasMatch && state.firstCard !== undefined && state.secondCard !== undefined) {
             // Rule 3-A: Remove matching cards from board
             const first = this.board[state.firstCard.row]?.[state.firstCard.col];
             const second = this.board[state.secondCard.row]?.[state.secondCard.col];
@@ -194,7 +194,7 @@ export class Board {
                 second.controller = undefined;
             }
             this.playerStates.set(playerId, { hasMatch: false });
-    } else if (!state.hasMatch && state.firstCard !== undefined && state.secondCard !== undefined) {
+        } else if (!state.hasMatch && state.firstCard !== undefined && state.secondCard !== undefined) {
             // Rule 3-B: Turn face-up uncontrolled cards face down
             if (state.firstCard !== undefined) {
                 const first = this.board[state.firstCard.row]?.[state.firstCard.col];
@@ -294,10 +294,10 @@ export class Board {
 
         // Handle first card flip
         if (!state.firstCard) {
-            // Rule 1-D: If card is controlled by another player, wait
+            // Rule 1-D: If card is controlled by another player, wait.
             while (cell.faceUp && typeof cell.controller === 'string' && cell.controller !== playerId) {
-                // Wait a short time and check again
-                await new Promise(resolve => setTimeout(resolve, Board.waitMs));
+                // Await a board-level change; when notified, re-check the cell.
+                await this.watch(playerId);
                 // If the card is gone (removed by a match), fail
                 if (cell.card.length === 0) {
                     throw new Error('card was removed while waiting');
@@ -314,7 +314,7 @@ export class Board {
         }
 
         // Handle second card flip
-        // Rule 2-B: Fail if card is controlled
+        // Rule 2-B: Fail if card is controlled. 
         if (cell.faceUp && typeof cell.controller === 'string') {
             const firstCard = this.board[state.firstCard.row]?.[state.firstCard.col];
             if (firstCard) {
@@ -412,7 +412,7 @@ export class Board {
      */
     public async watch(playerId: string): Promise<string> {
         return new Promise(resolve => {
-        this.listeners.push(() => resolve(this.look(playerId)));
+            this.listeners.push(() => resolve(this.look(playerId)));
         });
     }
 }

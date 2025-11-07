@@ -20,14 +20,14 @@ describe('Board', function() {
     //
     // flip():
     //   - first card flip:
-    //     * valid position, uncontrolled card
-    //     * valid position, card controlled by others (should wait)
-    //     * invalid position (out of bounds, empty space)
+    //     * valid position, uncontrolled card - 1-B, 1-C, 3-A, 3-B
+    //     * valid position, card controlled by others (should wait) - 1-D
+    //     * invalid position (out of bounds, empty space) - 1-A
     //   - second card flip:
-    //     * matching pair
-    //     * non-matching pair
-    //     * controlled card
-    //     * card removed during play
+    //     * matching pair - 2-C, 2-D
+    //     * non-matching pair - 2-E
+    //     * controlled card - 2-B
+    //     * card removed during play - 2-A
     //
     // map():
     //   - simple card replacement
@@ -187,7 +187,7 @@ describe('Board', function() {
     });
 
     describe('flip() tests', function() {
-        // Test first card flip: valid position, uncontrolled card
+        // Test first card flip: valid position, uncontrolled card - rule 1-B, 1-C
         it('allows flipping an uncontrolled card as first card', async function() {
             const board = await Board.parseFromFile('boards/perfect.txt');
             const result = await board.flip('player1', 0, 0);
@@ -199,7 +199,7 @@ describe('Board', function() {
                 'Should show the card value');
         });
 
-        // Test first card flip: card controlled by others (should wait)
+        // Test first card flip: card controlled by others (should wait) - rule 1-D
         it('waits for card controlled by others', async function() {
             const board = await Board.parseFromFile('boards/perfect.txt');
             
@@ -219,7 +219,7 @@ describe('Board', function() {
             assert(result.includes('my'), 'Card should now be controlled by player1');
         });
 
-        // Test first card flip: invalid positions
+        // Test first card flip: invalid positions - rule 1-A
         it('rejects invalid card positions', async function() {
             const board = await Board.parseFromFile('boards/perfect.txt');
             

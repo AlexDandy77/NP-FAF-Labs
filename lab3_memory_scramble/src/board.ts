@@ -366,10 +366,10 @@ export class Board {
             const firstCard = this.board[state.firstCard.row]?.[state.firstCard.col];
             if (firstCard) {
                 firstCard.controller = undefined;
+                state.secondCard = Board.noneCard;
                 // Wake waiters that may be waiting on the first card
                 this.notifyAll();
             }
-            state.firstCard = undefined;
             throw new Error('card is controlled by another player');
         }
 

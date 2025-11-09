@@ -229,10 +229,24 @@ export class Board {
             this.playerStates.set(playerId, { hasMatch: false });
         } else if (!state.hasMatch && state.firstCard !== undefined && state.secondCard !== undefined) {
             // Rule 3-B: Turn face-up uncontrolled cards face down
+            const isCardInPlayerStates = (row: number, col: number): boolean => {
+                for (const [pid, pState] of this.playerStates.entries()) {
+                    if (pid === playerId) continue; // Skip current player
+                    if ((pState.firstCard?.row === row && pState.firstCard?.col === col) ||
+                        (pState.secondCard?.row === row && pState.secondCard?.col === col)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
             if (state.firstCard !== undefined) {
                 const first = this.board[state.firstCard.row]?.[state.firstCard.col];
                 if (first !== undefined && (first.faceUp ?? false) && first.controller === undefined) {
-                    first.faceUp = false;
+                    // Only turn face down if no other player has this card in their state
+                    if (!isCardInPlayerStates(state.firstCard.row, state.firstCard.col)) {
+                        first.faceUp = false;
+                    }
                 }
             }
             if (state.secondCard === Board.noneCard) {
@@ -243,7 +257,10 @@ export class Board {
             if (state.secondCard !== undefined) {
                 const second = this.board[state.secondCard.row]?.[state.secondCard.col];
                 if (second !== undefined && (second.faceUp ?? false) && second.controller === undefined) {
-                    second.faceUp = false;
+                    // Only turn face down if no other player has this card in their state
+                    if (!isCardInPlayerStates(state.secondCard.row, state.secondCard.col)) {
+                        second.faceUp = false;
+                    }
                 }
             }
             this.playerStates.set(playerId, { hasMatch: false });

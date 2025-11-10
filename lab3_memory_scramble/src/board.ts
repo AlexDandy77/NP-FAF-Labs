@@ -23,6 +23,7 @@ export class Board {
     private readonly board: CardCell[][];
     private readonly playerStates: Map<string, PlayerState> = new Map();
     private readonly listeners: ((b: string) => void)[] = [];
+    private readonly claimLocks: Map<string, string> = new Map();
     private static readonly waitMs = Number('100');
     private static readonly noneCard = { row: -19527, col: -19527 };
 
@@ -93,23 +94,19 @@ export class Board {
         assert(this.height > 0, 'height must be positive');
         assert(this.width > 0, 'width must be positive');
         assert(this.board.length === this.height, 'board height must match height field');
-
-        for (let r = 0; r < this.board.length; r++) {
-            const row = this.board[r];
+        
+        for (const row of this.board) {
             assert(row !== undefined, 'row must exist');
             assert(row.length === this.width, 'all rows must have width length');
-            for (let c = 0; c < row.length; c++) {
-                const cell = row[c];
+            for (const cell of row) {
                 assert(cell !== undefined, 'cell must exist');
                 assert(typeof cell.card === 'string', 'card must be a string');
-                // if card is removed (empty), it should be face down and uncontrolled
                 if (cell.card.length === 0) {
-                    assert(cell.faceUp === false, 'removed card must be face down');
+                    assert(!cell.faceUp, 'removed card must be face down');
                     assert(cell.controller === undefined, 'removed card must have no controller');
                 }
-                // if there is a controller, card must be face up
                 if (cell.controller !== undefined) {
-                    assert(cell.faceUp === true, 'cards with controller must be face up');
+                    assert(cell.faceUp, 'cards with controller must be face up');
                 }
             }
         }
@@ -199,6 +196,40 @@ export class Board {
         const ls = [...this.listeners];
         this.listeners.length = 0;
         for (const fn of ls) fn(this.look("")); // any look to trigger
+    }
+
+    /**
+     * Compute unique key for a cell.
+     * @param row row index of the cell
+     * @param col column index of the cell
+     * @returns unique string key representing the cell
+     */
+    private cellKey(row: number, col: number): string {
+        return `${row},${col}`;
+    }
+    /**
+     * Attempt to claim a cell so the caller has exclusive rights to flip it first.
+     * Only succeeds if no other player currently holds a claim.
+     * @param row row index of the cell
+     * @param col column index of the cell
+     * @param owner playerId attempting the claim
+     * @returns true if the claim was acquired, false otherwise
+     */
+    private tryClaimCell(row: number, col: number, owner: string): boolean {
+        const k = this.cellKey(row, col);
+        if (this.claimLocks.has(k)) return false;
+        this.claimLocks.set(k, owner);
+        return true;
+    }
+    /**
+     * Release a previously-claimed cell if owned by the caller.
+     * @param row row index of the cell
+     * @param col column index of the cell
+     * @param owner playerId that owns the claim
+     */
+    private releaseClaim(row: number, col: number, owner: string): void {
+        const k = this.cellKey(row, col);
+        if (this.claimLocks.get(k) === owner) this.claimLocks.delete(k);
     }
 
     /**
@@ -364,16 +395,47 @@ export class Board {
                 }
             }
 
-            // Rules 1-B and 1-C
-            cell.faceUp = true;
-            cell.controller = playerId;
-            state.firstCard = { row, col: column };
-            this.playerStates.set(playerId, state);
-            this.notifyAll();
-            {
-                const out = this.look(playerId);
-                this.checkRepFunctions();
-                return out;
+            // Here card may be uncontrolled. Use a claim lock.
+            for (;;) {
+                if (cell.card.length === 0) {
+                    throw new Error('card was removed while waiting');
+                }
+
+                // If someone else currently controls it, wait again.
+                if (typeof cell.controller === 'string' && cell.controller !== playerId) {
+                    await this.watch(playerId);
+                    continue;
+                }
+
+                // Try to claim first rights on this cell
+                if (this.tryClaimCell(row, column, playerId)) {
+                    try {
+                        // Double-check invariants after acquiring the claim
+                        if (cell.card.length === 0) {
+                            throw new Error('card was removed while waiting');
+                        }
+                        if (typeof cell.controller === 'string' && cell.controller !== playerId) {
+                            // Lost the race to a different controller; loop and wait
+                            await this.watch(playerId);
+                            continue;
+                        }
+
+                        // Rules 1-B and 1-C: flip face up and take control
+                        cell.faceUp = true;
+                        cell.controller = playerId;
+                        state.firstCard = { row, col: column };
+                        this.playerStates.set(playerId, state);
+                        this.notifyAll();
+                        const out = this.look(playerId);
+                        this.checkRepFunctions();
+                        return out;
+                    } finally {
+                        this.releaseClaim(row, column, playerId);
+                    }
+                } else {
+                    // Someone else is currently claiming; wait for next change
+                    await this.watch(playerId);
+                }
             }
         }
 

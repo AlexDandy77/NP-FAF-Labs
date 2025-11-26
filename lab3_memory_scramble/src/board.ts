@@ -485,11 +485,10 @@ export class Board {
         // Save the updated state
         this.playerStates.set(playerId, state);
         this.notifyAll();
-        {
-            const out = this.look(playerId);
-            this.checkRepFunctions();
-            return out;
-        }
+        
+        const out = this.look(playerId);
+        this.checkRepFunctions();
+        return out;
     }
 
 
@@ -530,11 +529,10 @@ export class Board {
         }
         
         this.notifyAll();
-        {
-            const out = this.look(playerId);
-            this.checkRepFunctions();
-            return out;
-        }
+
+        const out = this.look(playerId);
+        this.checkRepFunctions();
+        return out;
     }
 
     /**

@@ -506,7 +506,7 @@ describe('Board', function() {
             // Make a change
             setTimeout(async () => {
                 await board.flip('player1', 0, 0);
-            }, 100);
+            }, 100); 
             
             // Wait for both notifications
             const [result1, result2] = await Promise.all([watchPromise1, watchPromise2]);

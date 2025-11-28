@@ -153,6 +153,13 @@ The integration tests verify:
 ![image](screenshots/integration-tests1.png)
 ![image](screenshots/integration-tests2.png)
 
+### Race Condition Test (Versioning)
+```bash
+python test_race_conditions.py
+```
+A small test script that demonstrates how versioning resolves concurrent write race conditions in a distributed key-value setup. The script performs concurrent writes to the same key and to multiple keys, then verifies that the leader and all followers converge to the same value/version.
+
+
 ### Performance Analysis
 
 ```bash
